@@ -1,0 +1,8 @@
+
+:root {
+  --color-primary: #ff3d00;
+  --radius: 1rem;
+}
+.dark {
+  --color-primary: #ff6e40;
+}

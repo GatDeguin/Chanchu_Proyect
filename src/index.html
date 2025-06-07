@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#ff3d00">
+
+  <meta charset="UTF-8">
+  <title>Visualizaciones Impactantes v8 (Full Fix)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Fuentes Google -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Inter:wght@400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Librerías UMD globales -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/countup.js/2.0.7/countUp.min.js"></script>
+
+  <style>
+    :root { --font-heading:'Montserrat',sans-serif; --font-body:'Inter',sans-serif; --font-mono:'JetBrains Mono',monospace; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; padding:0; font-family:var(--font-body); background:#121212; color:#fff; overflow-x:hidden; scroll-snap-type:y mandatory; }
+    section { position:relative; min-height:100vh; display:flex; align-items:center; justify-content:center; scroll-snap-align:start; background:linear-gradient(180deg,#121212,#1F1F1F); overflow:hidden; }
+    .reveal { position:absolute; inset:0; background:#121212; clip-path:circle(150% at 50% 50%); z-index:10; }
+    .parallax-layer { position:absolute; inset:0; background:url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1920&q=60') center/cover no-repeat; opacity:0.1; z-index:0; }
+    nav { position:fixed; top:50%; right:1rem; transform:translateY(-50%); z-index:1000; }
+    nav ul { list-style:none; padding:0; margin:0; }
+    nav li { margin:0.5rem 0; }
+    nav a { color:#888; font-size:1.5rem; transition:color .3s; }
+    nav a.active, nav a:hover { color:#4CAF50; }
+    .toggle-dark { position:fixed; top:1rem; right:1rem; font-size:2rem; cursor:pointer; z-index:1000; color:#FFC107; }
+    #backTop { position:fixed; bottom:1rem; right:1rem; padding:.75rem 1.25rem; background:#4CAF50; color:#121212; border:none; border-radius:12px; font-family:var(--font-heading); font-size:1rem; cursor:pointer; clip-path:polygon(0 0,100% 0,90% 100%,0% 100%); transition:clip-path .4s ease; z-index:1000; }
+    #backTop:hover { clip-path:polygon(10% 0,100% 0,100% 100%,0% 100%); }
+    #loader { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.8); z-index:2000; }
+    .loader-dot { width:16px; height:16px; margin:4px; background:#4CAF50; border-radius:50%; animation:jump 0.6s infinite alternate; }
+    @keyframes jump { to { transform:translateY(-16px); } }
+    .stat-card { position:relative; background:#1F1F1F; border-radius:12px; padding:2rem; box-shadow:8px 8px 16px #0B0B14,-8px -8px 16px #16161F; overflow:hidden; cursor:pointer; }
+    .stat-card::before { content:''; position:absolute; bottom:0; left:0; width:100%; height:0; background:linear-gradient(to top,#4CAF50,#FFC107); transition:height .3s ease; z-index:1; }
+    .stat-card:hover::before { height:100%; }
+    .stat-card .count, .stat-card p { position:relative; z-index:2; font-family:var(--font-mono); }
+    .stat-card .count { font-size:3rem; }
+    .stat-card p { margin-top:.5rem; font-family:var(--font-body); }
+    h1,h2 { font-family:var(--font-heading); text-transform:uppercase; letter-spacing:1.5px; font-size:72px; line-height:1; color:#FFC107; z-index:2; }
+  </style>
+</head>
+<body>
+    <section id="section-hero" class="relative h-screen flex items-center justify-center overflow-hidden">
+      <h1 class="hero-title text-6xl font-bold">Bienvenido a ChanchuTurbo</h1>
+    </section>
+
+  <div id="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>
+  <i class="bx bx-moon toggle-dark"></i>
+  <button id="backTop">↑ Top</button>
+  <nav aria-label="Secciones"><ul><li><a href="#hero" class="active"><i class='bx bx-globe'></i></a></li><li><a href="#stats"><i class='bx bx-bar-chart'></i></a></li><li><a href="#network"><i class='bx bx-network-chart'></i></a></li><li><a href="#map"><i class='bx bx-map'></i></a></li></ul></nav>
+
+  <section id="hero">
+    <div class="reveal"></div>
+    <div class="parallax-layer"></div>
+    <canvas id="particleCanvas" class="absolute inset-0"></canvas>
+    <div class="relative z-10 text-center">
+      <h1>Proyecto Chanchu</h1>
+      <p>Interactúa con cada sección ↓</p>
+    </div>
+  </section>
+  <section id="stats">
+    <div class="reveal"></div>
+    <div class="parallax-layer"></div>
+    <div class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 px-8">
+      <div class="stat-card"><div class="count" data-count="1500">2</div><p>Usuarios Activos</p></div>
+      <div class="stat-card"><div class="count" data-count="320">6</div><p>Proyectos</p></div>
+      <div class="stat-card"><div class="count" data-count="85">3</div><p>Países</p></div>
+    </div>
+  </section>
+  <section id="network">
+    <div class="reveal"></div>
+    <svg id="networkSvg" class="absolute inset-0"></svg>
+  </section>
+  <section id="map">
+    <div class="reveal"></div>
+    <svg id="mapSvg" class="flex-1 w-full h-full"></svg>
+    <div id="legend" class="relative z-10 p-4 bg-black bg-opacity-70 text-sm mt-4">
+      <strong>Leyenda:</strong><div id="legend-items" class="flex space-x-2 mt-1"></div>
+    </div>
+  </section>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const loader = document.getElementById('loader'); if (loader) loader.style.display = 'none';
+      document.querySelector('.toggle-dark').onclick = () => document.body.classList.toggle('dark');
+      document.getElementById('backTop').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      gsap.registerPlugin(ScrollTrigger);
+      gsap.utils.toArray('section').forEach(sec => {
+        ScrollTrigger.create({ trigger: sec, start: 'top center', end: '+=1', onEnter: () => {
+            gsap.to(sec.querySelector('.reveal'), { clipPath: 'circle(0% at 50% 50%)', duration: 0.6, ease: 'power2.out', onComplete: () => sec.querySelector('.reveal').style.display='none' });
+          }, onEnterBack: () => {
+            const rev = sec.querySelector('.reveal'); rev.style.display='block'; gsap.set(rev, { clipPath: 'circle(150% at 50% 50%)' });
+            gsap.to(rev, { clipPath: 'circle(0% at 50% 50%)', duration: 0.6, ease: 'power2.out', onComplete: () => rev.style.display='none' });
+          }
+        });
+        ScrollTrigger.create({ trigger: sec, scrub: true, start: 'top bottom', end: 'bottom top', onUpdate: self => {
+            gsap.to(sec.querySelector('.parallax-layer'), { y: -self.progress * 20, ease: 'none' });
+          }
+        });
+        ScrollTrigger.create({ trigger: sec, start: 'top center', end: 'bottom center', onEnter: () => setActive(sec.id), onEnterBack: () => setActive(sec.id) });
+      });
+      function setActive(id) { document.querySelectorAll('nav a').forEach(a => a.classList.remove('active')); document.querySelector(`nav a[href='#${id}']`).classList.add('active'); }
+
+      ScrollTrigger.create({ trigger: '#stats', onEnter: () => {
+        document.querySelectorAll('.count').forEach(el => new CountUp(el, +el.dataset.count, { duration: 2 }).start());
+      }});
+
+      initParticles(); initNetwork(); initMap();
+      let rtimer; window.addEventListener('resize', () => { clearTimeout(rtimer); rtimer = setTimeout(() => { resizeParticles(); resizeNetwork(); resizeMap(); }, 100); });
+    });
+
+    // Partículas
+    let particleRenderer, particleScene, particleCamera, particlePoints;
+    function initParticles() {
+      const canvas = document.getElementById('particleCanvas');
+      particleRenderer = new THREE.WebGLRenderer({ canvas, alpha: true }); particleRenderer.setSize(window.innerWidth, window.innerHeight);
+      particleScene = new THREE.Scene();
+      particleCamera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000); particleCamera.position.z = 2;
+      const count=150; const pos=new Float32Array(count*3);
+      for(let i=0;i<count;i++){pos[i*3]=(Math.random()-0.5)*4;pos[i*3+1]=(Math.random()-0.5)*4;pos[i*3+2]=(Math.random()-0.5)*4;}
+      const geom=new THREE.BufferGeometry(); geom.setAttribute('position', new THREE.BufferAttribute(pos,3));
+      const mat=new THREE.PointsMaterial({ color:0x4CAF50, size:0.02 });
+      particlePoints=new THREE.Points(geom,mat); particleScene.add(particlePoints);
+      (function animate(){requestAnimationFrame(animate); particlePoints.rotation.y+=0.0005; particleRenderer.render(particleScene,particleCamera);})();
+    }
+    function resizeParticles(){ if(particleRenderer&&particleCamera){particleCamera.aspect=window.innerWidth/window.innerHeight;particleCamera.updateProjectionMatrix();particleRenderer.setSize(window.innerWidth,window.innerHeight);} }
+
+    // Red de nodos
+    let netSim, netSVG;
+    function initNetwork(){
+      netSVG=d3.select('#networkSvg').attr('viewBox',[0,0,window.innerWidth,window.innerHeight]);
+      const nodes=d3.range(30).map(i=>({id:i}));
+      const links=d3.shuffle(d3.range(60).map(()=>({source:Math.floor(Math.random()*30),target:Math.floor(Math.random()*30)}))).slice(0,45);
+      netSim=d3.forceSimulation(nodes).force('link',d3.forceLink(links).id(d=>d.id).distance(60)).force('charge',d3.forceManyBody().strength(-30)).force('center',d3.forceCenter(window.innerWidth/2,window.innerHeight/2));
+      netSVG.append('g').selectAll('line').data(links).enter().append('line').attr('stroke','rgba(255,255,255,0.2)');
+      const circles=netSVG.append('g').selectAll('circle').data(nodes).enter().append('circle').attr('r',6).attr('fill','#4CAF50')
+        .on('mouseover',(ev,d)=>{netSVG.append('text').attr('id','tt').attr('x',d.x).attr('y',d.y-10).attr('fill','#FFC107').text(`Nodo ${d.id}`);
+          const ripple=netSVG.append('circle').attr('cx',d.x).attr('cy',d.y).attr('r',0).attr('stroke','#4CAF50').attr('stroke-width',2).attr('fill','none');
+          gsap.to(ripple.node(),{attr:{r:30},strokeOpacity:0,duration:0.6,ease:'power1.out',onComplete:()=>ripple.remove()});})
+        .on('mouseout',()=>netSVG.select('#tt').remove());
+      netSim.on('tick',()=>{netSVG.selectAll('line').attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);circles.attr('cx',d=>d.x).attr('cy',d=>d.y);});
+    }
+    function resizeNetwork(){ if(netSVG) netSVG.attr('viewBox',[0,0,window.innerWidth,window.innerHeight]); }
+
+    // Mapa coroplético
+    let mapSVG;
+    function initMap(){
+      mapSVG=d3.select('#mapSvg').attr('viewBox',[0,0,window.innerWidth,window.innerHeight]);
+      const proj=d3.geoNaturalEarth1().scale(window.innerWidth/1.3/Math.PI).translate([window.innerWidth/2,window.innerHeight/2]);
+      const path=d3.geoPath(proj);
+      d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
+        const countries=topojson.feature(world,world.objects.countries).features;
+        const color=d3.scaleSequential(d3.interpolateCool).domain([0,100]);
+        mapSVG.selectAll('path').data(countries).enter().append('path').attr('d',path).attr('fill',d=>color(Math.random()*100)).attr('stroke','#000')
+          .on('mouseover',function(){d3.select(this).attr('filter','drop-shadow(0 0 8px #4CAF50)').transition().attr('transform','scale(1.05)');})
+          .on('mouseout',function(){d3.select(this).attr('filter',null).transition().attr('transform','scale(1)');});
+        const legend=d3.select('#legend-items');[0,25,50,75,100].forEach(v=>{const item=legend.append('div').style('display','flex').style('align-items','center').style('margin-right','8px');item.append('div').style('width','20px').style('height','10px').style('background',color(v)).style('margin-right','4px');item.append('span').text(v);});
+      }).catch(err=>console.error('Error mapa:',err));
+    }
+    function resizeMap(){ if(mapSVG) mapSVG.attr('viewBox',[0,0,window.innerWidth,window.innerHeight]); }
+  </script>
+</body>
+</html>
