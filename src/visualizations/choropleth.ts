@@ -3,7 +3,6 @@
 import * as d3 from 'd3';
 import { feature } from 'topojson-client';
 
-interface CountryDatum { id: string; value: number; }
 
 export async function initMap(container: HTMLElement) {
   const width = container.clientWidth;

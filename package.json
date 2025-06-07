@@ -8,7 +8,7 @@
     "build": "vite build && npm run build-sw",
     "preview": "vite preview",
     "test": "vitest run",
-    "lint": "eslint src --ext .ts,.tsx,.html",
+    "lint": "eslint src --ext .ts,.tsx",
     "build-sw": "node build-sw.js",
     "generate-sw": "node build-sw.js",
     "analyze": "vite build --mode production",

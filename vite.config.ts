@@ -1,6 +1,5 @@
 
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react'; // If using react, adjust accordingly
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
